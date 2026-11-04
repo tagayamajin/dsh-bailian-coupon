@@ -1,0 +1,10 @@
+# dsh-bailian-coupon —— cordis patch
+#
+# 这一条同时挂载插件的两个半边：
+#   - 宿主半边：lib/index.js（注册 /api/dsh-bailian-coupon/* 路由，调用阿里云 BSS OpenAPI）
+#   - 浏览器半边：lib/client.js（侧栏徽标 + 设置页），由宿主的 dsh.client 声明自动服务化
+#
+# 安装：dsh plugin --profile desktop add link:<本目录绝对路径>
+- insert:
+    - id: bailian-coupon
+      name: dsh-bailian-coupon
