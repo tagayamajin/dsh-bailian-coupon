@@ -1,6 +1,6 @@
 {
   "name": "dsh-bailian-coupon",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "阿里云百炼（Model Studio）代金券/优惠券余额：在 DSH 侧栏常驻显示剩余额度",
   "type": "module",
   "main": "lib/index.js",
