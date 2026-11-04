@@ -48,17 +48,21 @@ $env:ALIBABA_CLOUD_ACCESS_KEY_SECRET = "..."
 
 ## 安装
 
-### 方式一：从 npm / 插件市场安装（推荐）
+### 方式一：从插件市场 / GitHub 安装（推荐）
 
 ```powershell
-dsh plugin --profile web add dsh-bailian-coupon
+# 当前（尚未发布 npm 包）：直接从 GitHub 仓库安装
+dsh plugin --profile web add github:tagayamajin/dsh-bailian-coupon
+
+# NPM 包 dsh-bailian-coupon 发布后，可简写为：
+# dsh plugin --profile web add dsh-bailian-coupon
 ```
 
 装好后**重启 DSH**（宿主只在启动时扫描插件）。侧栏 Settings 上方出现 `券 未配置` 徽标，
 点开徽标 → 在面板里直接填 RAM AccessKey ID / Secret → **保存并查询**；也可以在
 **设置 → 插件 → 百炼优惠券** 里填。首次查询成功后徽标变成 `券 ¥300.00`（示例）。
 
-### 方式二：从源码 link 安装（本地开发）
+### 方式二：从本地源码 link 安装（本地开发）
 
 > 桌面版 profile 由桌面应用独占，命令行 `dsh plugin --profile desktop add` 会被拒绝，
 > 必须从 GUI 安装。
