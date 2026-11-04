@@ -1,0 +1,71 @@
+{
+  "name": "dsh-bailian-coupon",
+  "version": "0.1.0",
+  "description": "阿里云百炼（Model Studio）代金券/优惠券余额：在 DSH 侧栏常驻显示剩余额度",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "dsh-client-plugin",
+    "aliyun",
+    "alibaba-cloud",
+    "bailian",
+    "model-studio",
+    "coupon",
+    "voucher",
+    "balance",
+    "bss-openapi",
+    "sidebar"
+  ],
+  "license": "MIT",
+  "author": "dsh-bailian-coupon contributors",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node tests/bss.test.mjs && node tests/routes.test.mjs && node tests/client.test.mjs"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.1-rc.3"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.2.1-rc.3"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tagayamajin/dsh-bailian-coupon.git"
+  },
+  "homepage": "https://github.com/tagayamajin/dsh-bailian-coupon",
+  "bugs": {
+    "url": "https://github.com/tagayamajin/dsh-bailian-coupon/issues"
+  }
+}
