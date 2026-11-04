@@ -6,6 +6,7 @@
 - 详情面板：剩余总额、可用/全部张数、每张券的面值/余额/到期时间/状态、控制台链接。
 - 设置页：填写 RAM AccessKey ID / Secret、刷新间隔，支持"保存并查询"。
 - 面板内也能直接填：未配置时点开徽标，面板里出现 `AccessKey ID` / `AccessKey Secret` 两个输入框。
+- **DeepSeek 峰谷时段**：徽标右侧圆点 + 详情面板顶部显示当前处于峰时还是谷时——**峰时红色、谷时绿色**，并提示「下次切换」倒计时。
 
 > 插件市场分类：**集成与连接** · English: Show Alibaba Cloud Bailian (Model Studio) cash-coupon balance in the DSH sidebar.
 
@@ -102,9 +103,27 @@ Expand-Archive -Path $zip -DestinationPath "$env:USERPROFILE\dsh-plugins" -Force
 | `refreshMinutes` | `10` | 自动刷新间隔，1–1440 分钟 |
 | `includeCashNote` | `false` | 是否附带查询现金余额 `QueryAccountBalance`（仅作附注） |
 | `endpoint` | `business.aliyuncs.com` | BSS 端点，一般不用改 |
+| `holidays` | 内置 2026 年表 | 追加节假日 `["YYYY-MM-DD", ...]`，用于 2027 年等未内置年份 |
+| `replaceHolidays` | `false` | 为 `true` 时用 `holidays` 完全替换内置节假日表 |
 
 凭据保存在插件目录的 `.state/config.json`（权限 0600，不提交、不打印）；环境变量存在时以环境变量为准，
 设置页会显示 `envLocked` 提示。
+
+## DeepSeek 峰谷时段
+
+DeepSeek API 计费分峰谷：**高峰时段单价为谷时的 2 倍**，谷时是峰价的一半。插件在侧栏徽标与详情面板
+显示当前时段，颜色区分：
+
+| 时段 | 颜色 | 规则（北京时间） |
+| --- | --- | --- |
+| **峰时** | 🔴 红色 `#dc2626` | 周一至周五 `09:00–12:00`、`14:00–18:00`，法定节假日除外 |
+| **谷时** | 🟢 绿色 `#15803d` | 其余全部时间（夜间、午休、周末、法定节假日） |
+
+- 面板会显示「下次切换」的准确时间（如「下一次切换 2026-11-05 09:00 周四 → 峰时（558 分钟后）」）。
+- 规则在**客户端本地计算**（北京时间固定 UTC+8，不依赖系统时区），不额外发请求、不走网络；
+  每 30 秒自动重算一次，跨越 09:00/12:00/14:00/18:00 时会自动变色。
+- 内置 2026 年法定节假日表（元旦/春节/清明/劳动节/端午/中秋/国庆）与调休安排；2027 年放假安排公布前，
+  可通过配置项 `holidays` 补充，未内置年份会按「仅周末」计算并提示 `holidayDataAvailable: false`。
 
 ## HTTP 接口（本机回环，非回环返回 403）
 
@@ -112,6 +131,7 @@ Expand-Archive -Path $zip -DestinationPath "$env:USERPROFILE\dsh-plugins" -Force
 | --- | --- | --- |
 | `GET/HEAD` | `/api/dsh-bailian-coupon/overview` | 当前余额（TTL 缓存，正常 10 分钟内不重复请求） |
 | `POST` | `/api/dsh-bailian-coupon/refresh` | 强制刷新 |
+| `GET/HEAD` | `/api/dsh-bailian-coupon/peak` | DeepSeek 峰谷时段状态（本地规则计算，不请求阿里云） |
 | `GET/HEAD` | `/api/dsh-bailian-coupon/config` | 配置状态（AK 已掩码） |
 | `POST` | `/api/dsh-bailian-coupon/config` | 保存配置（`{accessKeyId, accessKeySecret, refreshMinutes, includeCashNote, endpoint}`，`{clear:true}` 清空凭据） |
 
@@ -126,12 +146,16 @@ Expand-Archive -Path $zip -DestinationPath "$env:USERPROFILE\dsh-plugins" -Force
 
 ```powershell
 & "C:\Users\w\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe" tests\bss.test.mjs
+& "...\node.exe" tests\peak.test.mjs
 & "...\node.exe" tests\routes.test.mjs
+& "...\node.exe" tests\client.test.mjs
 ```
 
 - `tests\bss.test.mjs`：签名算法（含官方示例对拍）、券汇总逻辑。
+- `tests\peak.test.mjs`：峰谷判定（09:00/12:00/14:00/18:00 边界）、下次切换、2026 节假日、自定义节假日表。
 - `tests\routes.test.mjs`：stub 宿主上下文 + 本地 HTTP 端到端，覆盖无凭据/方法守卫/配置掩码与落盘/
-  stub BSS 的刷新与缓存/错误映射。
+  stub BSS 的刷新与缓存/错误映射/峰谷路由。
+- `tests\client.test.mjs`：客户端 bundle 注册、插槽、面板渲染、本地峰谷算法。
 
 ## 故障排查
 
@@ -150,8 +174,9 @@ Expand-Archive -Path $zip -DestinationPath "$env:USERPROFILE\dsh-plugins" -Force
 package.json          # dsh.bundle.patch + dsh.client 声明
 cordis.patch.yml      # 宿主侧插入点
 lib/bss.js            # BSS 签名与查询（node:crypto + fetch，零依赖）
-lib/index.js          # 宿主插件：4 条 /api/dsh-bailian-coupon/* 路由 + 配置持久化
-lib/client.js         # 客户端 bundle（手写 CJS，仅依赖 react / react-dom/client）
+lib/peak.js           # DeepSeek 峰谷规则（北京时间、节假日表、下次切换）
+lib/index.js          # 宿主插件：5 条 /api/dsh-bailian-coupon/* 路由 + 配置持久化
+lib/client.js         # 客户端 bundle（手写 CJS，仅依赖 react / react-dom/client，含本地峰谷计算）
 tests/*.test.mjs      # 离线测试
 ```
 
