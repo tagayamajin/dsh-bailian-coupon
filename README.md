@@ -58,6 +58,9 @@ dsh plugin --profile web add github:tagayamajin/dsh-bailian-coupon
 # dsh plugin --profile web add dsh-bailian-coupon
 ```
 
+> `github:` 规格由包管理器用 `git ls-remote` 解析，**要求本机装有 Git**。
+> 没装 Git（或 github.com 直连不稳定）请看下面的「方式三」。
+
 装好后**重启 DSH**（宿主只在启动时扫描插件）。侧栏 Settings 上方出现 `券 未配置` 徽标，
 点开徽标 → 在面板里直接填 RAM AccessKey ID / Secret → **保存并查询**；也可以在
 **设置 → 插件 → 百炼优惠券** 里填。首次查询成功后徽标变成 `券 ¥300.00`（示例）。
@@ -71,6 +74,24 @@ dsh plugin --profile web add github:tagayamajin/dsh-bailian-coupon
    （link 安装即可，改代码后重启生效）。
 2. **重启 DSH Desktop**（宿主只在启动时扫描插件）。
 3. 同上：填 AK/SK → 保存并查询。
+
+### 方式三：没有 Git 环境（下载 zip 后本地安装）
+
+`github:` 安装方式依赖本机 `git` 命令；如果没装 Git，下载源码包再本地安装即可：
+
+1. 下载源码包：<https://github.com/tagayamajin/dsh-bailian-coupon/archive/refs/heads/main.zip>
+2. 解压到任意目录，例如 `%USERPROFILE%\dsh-plugins\dsh-bailian-coupon`
+3. 打开 DSH → **设置 → 插件市场 → 从路径安装**，选择解压后的目录（link 安装）
+4. **重启 DSH Desktop**，点侧栏 `券` 徽标填 AK/SK
+
+PowerShell 一条命令搞定下载与解压：
+
+```powershell
+$zip = "$env:TEMP\dsh-bailian-coupon.zip"
+Invoke-WebRequest -Uri "https://github.com/tagayamajin/dsh-bailian-coupon/archive/refs/heads/main.zip" -OutFile $zip
+Expand-Archive -Path $zip -DestinationPath "$env:USERPROFILE\dsh-plugins" -Force
+# 解压目录：$env:USERPROFILE\dsh-plugins\dsh-bailian-coupon-main
+```
 
 ## 配置项
 
