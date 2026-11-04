@@ -49,14 +49,17 @@ $env:ALIBABA_CLOUD_ACCESS_KEY_SECRET = "..."
 
 ## 安装
 
-### 方式一：从插件市场 / GitHub 安装（推荐）
+### 方式一：从 npm / 插件市场安装（推荐）
 
 ```powershell
-# 当前（尚未发布 npm 包）：直接从 GitHub 仓库安装
-dsh plugin --profile web add github:tagayamajin/dsh-bailian-coupon
+# 已发布到 npm（0.1.1），一条命令安装
+dsh plugin --profile web add dsh-bailian-coupon
+```
 
-# NPM 包 dsh-bailian-coupon 发布后，可简写为：
-# dsh plugin --profile web add dsh-bailian-coupon
+也可以直接从 GitHub 仓库安装（要求本机装有 Git；没装 Git 见「方式三」）：
+
+```powershell
+dsh plugin --profile web add github:tagayamajin/dsh-bailian-coupon
 ```
 
 > `github:` 规格由包管理器用 `git ls-remote` 解析，**要求本机装有 Git**。
