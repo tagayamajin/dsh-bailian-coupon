@@ -2,11 +2,15 @@
 
 在 DeepSeek Harness（DSH）侧边栏常驻显示**阿里云百炼优惠券（代金券）剩余余额**的插件。
 
-- 侧边栏底部徽标：`券 ¥xxx.xx`，约 10 分钟自动刷新，点击打开详情面板。
-- 详情面板：剩余总额、可用/全部张数、每张券的面值/余额/到期时间/状态、控制台链接。
+- 侧边栏底部徽标：`券 ¥xxx.xx`，点击打开详情面板。**每轮对话结束后自动刷新余额**（服务端监听 DSH 的
+  `session/event` → `turn/end` 时强制重查），面板另有 15 秒固定轮询，无需手动点刷新。
+- 详情面板：**每次打开都会自动强制刷新**（30 秒内重复打开则复用，避免频繁请求阿里云），
+  显示剩余总额、可用/全部张数、每张券的面值/余额/到期时间/状态、控制台链接。
+- 后台更新：缓存过期时 `/overview` 会先返回旧数据、同时后台补拉（stale-while-revalidate），下次打开即是最新值。
 - 设置页：填写 RAM AccessKey ID / Secret、刷新间隔，支持"保存并查询"。
 - 面板内也能直接填：未配置时点开徽标，面板里出现 `AccessKey ID` / `AccessKey Secret` 两个输入框。
 - **DeepSeek 峰谷时段**：徽标右侧圆点 + 详情面板顶部显示当前处于峰时还是谷时——**峰时红色、谷时绿色**，并提示「下次切换」倒计时。
+- **本次会话消耗**：详情面板显示本会话开始时的余额与当前余额之差（红字金额 + 已结算轮数），只统计已出账的额度；服务端按会话 id 记账，不会跨会话串账。
 
 > 插件市场分类：**集成与连接** · English: Show Alibaba Cloud Bailian (Model Studio) cash-coupon balance in the DSH sidebar.
 
@@ -189,6 +193,16 @@ tests/*.test.mjs      # 离线测试
 - 凭据只保存在本机插件目录 `.state/config.json`（权限 0600，已 gitignore），**不上传、不打印**；HTTP 接口返回的 Secret 一律掩码。
 - 不读取 DSH 里保存的模型 API Key，不向任何第三方发送数据。
 - 建议单独建一个只读 RAM 用户（附加 `AliyunBSSReadOnlyAccess`）专供本插件使用。
+
+## 版本记录
+
+- **0.1.2** — 打开面板自动强制刷新（30 秒节流）；刷新后侧栏徽标金额同步；`/overview` 增加
+  stale-while-revalidate（过期缓存先返回、后台补拉）；**每轮对话结束自动刷新余额**（监听
+  `session/event` 的 `turn/end`，1.2 秒去抖）+ 面板 15 秒轮询；**新增「本次会话消耗」**（`/overview`
+  与 `/refresh` 响应带 `session: { id, spent, turns, baseline, remaining }`）。
+- **0.1.1** — 新增 DeepSeek 峰谷时段（峰时红/谷时绿）与「下次切换」提示；`holidays` /
+  `replaceHolidays` 配置项；`GET /api/dsh-bailian-coupon/peak` 接口。
+- **0.1.0** — 首版：侧栏余额徽标、券明细面板、设置页与面板内填 RAM AccessKey、10 分钟缓存。
 
 ## 许可证
 
